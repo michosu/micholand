@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Portfolio</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="loading-text">Loading Portfolio...</div>
+        <div class="loading-bar">
+            <div class="loading-progress" id="loading-progress"></div>
+        </div>
+    </div>
+
+    <!-- Canvas -->
+    <canvas id="canvas"></canvas>
+
+    <!-- UI -->
+    <div id="ui">
+        <div>← → Move | SPACE Jump</div>
+        <div>↑ Interact</div>
+        <div>X: <span id="pos-x">0</span></div>
+        <div>Nearest: <span id="nearest">--</span></div>
+        <div style="margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">
+            <div style="color: #4ecdc4;">VelX: <span id="vel-x">0</span></div>
+            <div style="color: #ff6b6b;">VelY: <span id="vel-y">0</span></div>
+            <div style="color: #ffe66d;">Grounded: <span id="grounded">false</span></div>
+            <div style="color: #a8e6cf;">Gravity: <span id="gravity-pull">0</span>/frame</div>
+        </div>
+        <div style="margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">
+            <div style="color: #a8e6cf;">Char: <span id="char-pos">0, 0</span></div>
+            <div style="color: #ff9ff3;">Cam: <span id="cam-pos">0, 0, 0</span></div>
+            <div style="color: #ffd93d;">Cam Rot: <span id="cam-rot">0, 0, 0</span></div>
+        </div>
+    </div>
+
+    <!-- Interact Button -->
+    <div class="interact-button" id="interact-button">
+        <div class="button-circle">↑</div>
+        <div class="button-label" id="button-label">VIEW</div>
+    </div>
+
+    <!-- Video Overlay -->
+    <div id="video-overlay">
+        <div class="video-container">
+            <div class="video-header">
+                <h1 id="video-title">Project Title</h1>
+                <p id="video-subtitle">Subtitle</p>
+            </div>
+            <div class="video-wrapper">
+                <iframe id="video-iframe" src="" allow="autoplay"></iframe>
+            </div>
+            <div class="close-button">
+                <button id="close-button">PRESS ESC TO CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+     <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
