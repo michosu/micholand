@@ -273,6 +273,49 @@ const characterCollider = new Capsule(
 // Input
 const keys = new Set();
 
+function bindMobileControls() {
+    const controls = document.getElementById('mobile-controls');
+    if (!controls) return;
+
+    const setKey = (key, active) => {
+        if (active) {
+            keys.add(key);
+        } else {
+            keys.delete(key);
+        }
+    };
+
+    const press = (e) => {
+        const key = e.currentTarget?.dataset?.key;
+        if (!key) return;
+        e.preventDefault();
+        if (isSkyActive()) return;
+        setKey(key, true);
+        if (key === 'ArrowUp' && nearestIsland && canInteract) {
+            character.autoWalking = true;
+            character.autoWalkTarget = nearestIsland.x;
+        }
+    };
+
+    const release = (e) => {
+        const key = e.currentTarget?.dataset?.key;
+        if (!key) return;
+        e.preventDefault();
+        setKey(key, false);
+    };
+
+    controls.querySelectorAll('.mc-btn').forEach((btn) => {
+        btn.addEventListener('touchstart', press, { passive: false });
+        btn.addEventListener('touchend', release, { passive: false });
+        btn.addEventListener('touchcancel', release, { passive: false });
+        btn.addEventListener('mousedown', press);
+        btn.addEventListener('mouseup', release);
+        btn.addEventListener('mouseleave', release);
+    });
+}
+
+bindMobileControls();
+
 document.addEventListener('keydown', (e) => {
     // DEV SHORTCUTS (remove before deploy)
     if (e.key === '1') {

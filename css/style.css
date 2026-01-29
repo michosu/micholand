@@ -208,3 +208,59 @@
         .close-button button:hover {
             background: rgba(255, 255, 255, 0.2);
         }
+
+        /* Mobile Controls */
+        #mobile-controls {
+            position: fixed;
+            bottom: 18px;
+            left: 18px;
+            right: 18px;
+            display: none;
+            pointer-events: none;
+            z-index: 300;
+        }
+
+        #mobile-controls .mc-btn {
+            position: absolute;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            background: rgba(0, 0, 0, 0.35);
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 18px;
+            font-weight: bold;
+            pointer-events: auto;
+            touch-action: none;
+            user-select: none;
+        }
+
+        #mobile-controls .mc-left {
+            left: 0;
+            bottom: 0;
+        }
+
+        #mobile-controls .mc-right {
+            left: 64px;
+            bottom: 0;
+        }
+
+        #mobile-controls .mc-jump {
+            right: 0;
+            bottom: 0;
+        }
+
+        #mobile-controls .mc-up {
+            right: 64px;
+            bottom: 0;
+        }
+
+        @media (max-width: 820px) {
+            #mobile-controls {
+                display: block;
+            }
+            #ui {
+                font-size: 12px;
+                opacity: 0.85;
+            }
+        }
