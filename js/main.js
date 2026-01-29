@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Octree } from 'three/addons/math/Octree.js';
 import { Capsule } from 'three/addons/math/Capsule.js';
+import { createSkyScene, transitionToSky, transitionToGround, updateSky, handleSkyClose, isSkyActive, isSkyTransitioning, SKY_CONFIG } from './skyScene.js';
 
 // ==========================================
 // CONFIGURATION
@@ -64,7 +65,7 @@ const CONFIG = {
 
     // Scene
     scene: {
-        backgroundColor: 0xfafafa,
+        backgroundColor: 0x363636,
         fogColor: 0xa6b4c9,
         fogNear: 10,
         fogFar: 100
@@ -165,6 +166,8 @@ const frontFillLight = new THREE.DirectionalLight(0xfff2cc, 0.7);
 frontFillLight.position.set(0, 12, 28);
 scene.add(frontFillLight);
 
+createSkyScene(scene); // NEW - initialize sky scene
+
 // ==========================================
 // PHYSICS SYSTEM
 // ==========================================
@@ -189,6 +192,13 @@ const character = {
     autoWalkTarget: 0
 };
 scene.add(character.group);
+
+function freezeCharacterForSky() {
+    character.velocityX = 0;
+    character.velocityY = 0;
+    character.autoWalking = false;
+    keys.clear();
+}
 
 // Blob shadow: a classic always-visible undershadow under the character.
 function createBlobShadowTexture(size = 128) {
@@ -264,11 +274,28 @@ const characterCollider = new Capsule(
 const keys = new Set();
 
 document.addEventListener('keydown', (e) => {
+    // DEV SHORTCUTS (remove before deploy)
+    if (e.key === '1') {
+        console.log('🌍 Switching to Ground');
+        transitionToGround(camera, scene, roomState.worldScene, character, cameraState, CONFIG);
+        return;
+    }
+    if (e.key === '2') {
+        console.log('☁️ Switching to Sky');
+        freezeCharacterForSky();
+        transitionToSky(camera, scene, roomState.worldScene, roomState.roomScene, character, cameraState);
+        return;
+    }
+
+    if (isSkyActive()) {
+        return;
+    }
     if (currentIsland) {
         if (e.key === 'Escape') closeIsland();
         return;
     }
 
+    // Movement keys
     if (['ArrowLeft', 'ArrowRight', ' ', 'ArrowUp'].includes(e.key)) {
         e.preventDefault();
         keys.add(e.key);
@@ -278,6 +305,7 @@ document.addEventListener('keydown', (e) => {
             character.autoWalkTarget = nearestIsland.x;
         }
     }
+
 });
 
 document.addEventListener('keyup', (e) => {
@@ -444,6 +472,7 @@ function updatePhysics(deltaTime) {
 // CHARACTER CONTROLLER
 // ==========================================
 function updateCharacter() {
+    if (isSkyActive()) return;
     if (currentIsland) return;
 
     const ACCEL = CONFIG.character.moveSpeed;
@@ -535,6 +564,8 @@ const cameraState = {
 };
 
 function updateCamera() {
+    if (isSkyActive() || isSkyTransitioning()) return;
+    
     if (cameraState.locked) {
         // Island viewing
         cameraState.targetX = currentIsland.x;
@@ -968,13 +999,16 @@ function animate() {
     requestAnimationFrame(animate);
     const delta = Math.min(clock.getDelta(), 0.05);
 
-    updateCharacter();
-    updatePhysics(delta);
+    if (!isSkyActive()) {
+        updateCharacter();
+        updatePhysics(delta);
+    }
     checkRoomZone();
     updateRoomFade();
     updateCamera();
     updateBlobShadow();
     findNearestIsland();
+    updateSky(camera, character); // Pass character
 
     if (character.mixer) character.mixer.update(delta);
 
@@ -986,6 +1020,7 @@ function animate() {
     document.getElementById('char-pos').textContent = `${character.x.toFixed(1)}, ${character.y.toFixed(1)}`;
     document.getElementById('cam-pos').textContent = `${camera.position.x.toFixed(1)}, ${camera.position.y.toFixed(1)}, ${camera.position.z.toFixed(1)}`;
     document.getElementById('cam-rot').textContent = `${(camera.rotation.x * 180 / Math.PI).toFixed(1)}°, ${(camera.rotation.y * 180 / Math.PI).toFixed(1)}°, ${(camera.rotation.z * 180 / Math.PI).toFixed(1)}°`;
+    document.getElementById('cam-fov').textContent = camera.fov.toFixed(2);
 
     // Calculate gravity pull per frame (gravity * deltaTime)
     const gravityPull = (CONFIG.character.gravity * delta).toFixed(2);
