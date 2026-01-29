@@ -316,6 +316,32 @@ function bindMobileControls() {
 
 bindMobileControls();
 
+function bindSceneButtons() {
+    const sceneControls = document.getElementById('mobile-scene');
+    if (!sceneControls) return;
+
+    const onPress = (e) => {
+        const target = e.currentTarget;
+        const sceneName = target?.dataset?.scene;
+        if (!sceneName) return;
+        e.preventDefault();
+
+        if (sceneName === 'ground') {
+            transitionToGround(camera, scene, roomState.worldScene, character, cameraState, CONFIG);
+        } else if (sceneName === 'sky') {
+            freezeCharacterForSky();
+            transitionToSky(camera, scene, roomState.worldScene, roomState.roomScene, character, cameraState);
+        }
+    };
+
+    sceneControls.querySelectorAll('.mc-scene').forEach((btn) => {
+        btn.addEventListener('touchstart', onPress, { passive: false });
+        btn.addEventListener('mousedown', onPress);
+    });
+}
+
+bindSceneButtons();
+
 document.addEventListener('keydown', (e) => {
     // DEV SHORTCUTS (remove before deploy)
     if (e.key === '1') {

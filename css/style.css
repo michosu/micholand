@@ -235,6 +235,29 @@
             user-select: none;
         }
 
+        #mobile-scene {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            display: none;
+            gap: 6px;
+            z-index: 300;
+        }
+
+        #mobile-scene .mc-scene {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(0, 0, 0, 0.35);
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 14px;
+            font-weight: 600;
+            pointer-events: auto;
+            touch-action: none;
+            user-select: none;
+        }
+
         #mobile-controls .mc-left {
             left: 0;
             bottom: 0;
@@ -258,6 +281,9 @@
         @media (max-width: 820px), (hover: none) and (pointer: coarse) {
             #mobile-controls {
                 display: block;
+            }
+            #mobile-scene {
+                display: flex;
             }
             #ui {
                 font-size: 12px;
