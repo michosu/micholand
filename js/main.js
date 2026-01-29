@@ -342,6 +342,18 @@ function bindSceneButtons() {
 
 bindSceneButtons();
 
+function setTouchClass() {
+    const isTouch = window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    if (isTouch) {
+        document.body.classList.add('touch');
+    } else {
+        document.body.classList.remove('touch');
+    }
+}
+
+setTouchClass();
+window.addEventListener('resize', setTouchClass);
+
 document.addEventListener('keydown', (e) => {
     // DEV SHORTCUTS (remove before deploy)
     if (e.key === '1') {

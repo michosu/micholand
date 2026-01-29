@@ -290,3 +290,11 @@
                 opacity: 0.85;
             }
         }
+
+        body.touch #mobile-controls {
+            display: block;
+        }
+
+        body.touch #mobile-scene {
+            display: flex;
+        }
