@@ -1331,7 +1331,11 @@ function flyInToProject(projectIndex) {
 }
 
 function createFlyInTimeline(targetOffset) {
-    const tl = gsap.timeline({ delay: VIEWER_CONFIG.flyInDelay });
+    const tl = gsap.timeline({
+        delay: VIEWER_CONFIG.flyInDelay,
+        onStart: () => { state.isAnimating = true; },
+        onComplete: () => { state.isAnimating = false; state.renderFramesLeft = Math.max(state.renderFramesLeft, 30); }
+    });
 
     tl.call(() => {
         state.cards.forEach((card, index) => {
@@ -1476,7 +1480,26 @@ function updateVideoOverlay() {
 function updateTimelineVisibility() {
     if (!state.timelineObject) return;
     const project = PROJECTS[state.currentIndex];
-    state.timelineObject.visible = !(project && project.locked);
+    const isLocked = project && project.locked;
+    const vis = isLocked ? 'hidden' : 'visible';
+
+    // Always keep timeline visible for prev/next navigation
+    // Hide only playback-specific elements on locked cards
+    if (state.timelineButtonImages) {
+        state.timelineButtonImages.play.style.visibility = vis;
+        state.timelineButtonImages.pause.style.visibility = vis;
+    }
+    if (state.timelineElements) {
+        state.timelineElements.current.style.visibility = vis;
+        state.timelineElements.duration.style.visibility = vis;
+        state.timelineElements.progress.style.visibility = vis;
+    }
+    if (state.scrubberDot) {
+        state.scrubberDot.style.visibility = vis;
+    }
+    if (state.timelineHitboxes.play) {
+        state.timelineHitboxes.play.hitbox.style.visibility = vis;
+    }
 }
 
 // ==========================================

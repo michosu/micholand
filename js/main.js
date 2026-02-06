@@ -5,6 +5,8 @@ import { Capsule } from 'three/addons/math/Capsule.js';
 import { PROJECTS, COLLECTIONS } from './projectData.js';
 import { initViewer, enterViewer, exitViewer, updateViewer, isViewerActive, isViewerTransitioning, getCurrentViewerIndex, setViewerTeleportSpots, viewerNeedsRender } from './videoViewer.js';
 import { initCollectionPopup, isCollectionOpen, openCollectionPopup } from './collectionPopup.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { handleDeepLink } from './framerBridge.js';
 
 // ==========================================
@@ -17,7 +19,8 @@ const CONFIG = {
         character: 'assets/models/character.glb',
         zones: 'assets/models/zones.glb',
         room: 'assets/models/room.glb',
-        teleportSpots: 'assets/models/teleport_spots.glb'
+        teleportSpots: 'assets/models/teleport_spots.glb',
+        sceneText: 'assets/models/scene_text.glb'
     },
 
     camera: {
@@ -67,6 +70,19 @@ const CONFIG = {
         fogColor: 0xa6b4c9,
         fogNear: 10,
         fogFar: 100
+    },
+
+    environment: {
+        text: {
+            hdr: 'assets/environment/klippad_sunrise_2_4k.hdr',  // HDR for 3D text reflections
+            intensity: 5.0,
+            rotation: { x: 0, y: 0, z: 90 }     // degrees
+        },
+        world: {
+            hdr: 'assets/environment/monochrome_studio_02_1k.hdr',  // HDR for world/scene
+            intensity: 2,                        // 0 = no HDR on world
+            rotation: { x: 0, y: 0, z: 0 }      // degrees
+        }
     }
 };
 
@@ -104,19 +120,25 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(getOptimalPixelRatio());
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.25;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 
 // ==========================================
-// LIGHTING
+// LIGHTING  (physically-based, no legacy mode)
 // ==========================================
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+// Soft ambient fill — keeps shadows from going pure black
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
 scene.add(ambientLight);
 
-const hemiLight = new THREE.HemisphereLight(0xffffff, 0x666666, 0.55);
+// Sky/ground gradient — adds subtle colour variation
+const hemiLight = new THREE.HemisphereLight(0xddeeff, 0x444422, 0.3);
 scene.add(hemiLight);
 
-const mainLight = new THREE.DirectionalLight(0xffffff, 1.15);
+// Key light — main shadow-casting sun
+const mainLight = new THREE.DirectionalLight(0xffffff, 2.8);
 mainLight.position.set(12, 24, 14);
 mainLight.castShadow = true;
 mainLight.shadow.mapSize.width = 512;
@@ -131,13 +153,84 @@ mainLight.shadow.camera.top = 40;
 mainLight.shadow.camera.bottom = -40;
 scene.add(mainLight);
 
-const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+// Back fill — gentle rim from behind
+const fillLight = new THREE.DirectionalLight(0xffffff, 4.5);
 fillLight.position.set(-10, 15, -10);
 scene.add(fillLight);
 
-const frontFillLight = new THREE.DirectionalLight(0xfff2cc, 0.7);
+// Front fill — subtle warm kick from camera side
+const frontFillLight = new THREE.DirectionalLight(0xfff8ee, 0.4);
 frontFillLight.position.set(0, 12, 28);
 scene.add(frontFillLight);
+
+// Environment map — separate HDR files for text and world
+let textEnvMap = null;
+let textModelRef = null;
+
+function applyTextEnvMap() {
+    if (!textEnvMap || !textModelRef) return;
+    const cfg = CONFIG.environment.text;
+    const rotation = new THREE.Euler(
+        THREE.MathUtils.degToRad(cfg.rotation.x),
+        THREE.MathUtils.degToRad(cfg.rotation.y),
+        THREE.MathUtils.degToRad(cfg.rotation.z)
+    );
+    textModelRef.traverse(child => {
+        if (!child.isMesh) return;
+        const mats = Array.isArray(child.material) ? child.material : [child.material];
+        mats.forEach(mat => {
+            mat.envMap = textEnvMap;
+            mat.envMapIntensity = cfg.intensity;
+            if (mat.envMapRotation) mat.envMapRotation.copy(rotation);
+            mat.needsUpdate = true;
+        });
+    });
+}
+
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+
+function envLoader(path) {
+    return path.toLowerCase().endsWith('.exr') ? new EXRLoader() : new RGBELoader();
+}
+
+const textHdr = CONFIG.environment.text.hdr;
+const worldHdr = CONFIG.environment.world.hdr;
+const sameHdr = textHdr === worldHdr;
+
+// Load world environment
+envLoader(worldHdr).load(worldHdr, (hdrTexture) => {
+    hdrTexture.mapping = THREE.EquirectangularReflectionMapping;
+    const processed = pmremGenerator.fromEquirectangular(hdrTexture).texture;
+
+    // World environment
+    scene.environment = processed;
+    scene.environmentIntensity = CONFIG.environment.world.intensity;
+    scene.environmentRotation = new THREE.Euler(
+        THREE.MathUtils.degToRad(CONFIG.environment.world.rotation.x),
+        THREE.MathUtils.degToRad(CONFIG.environment.world.rotation.y),
+        THREE.MathUtils.degToRad(CONFIG.environment.world.rotation.z)
+    );
+
+    // If same file, reuse for text too
+    if (sameHdr) {
+        textEnvMap = processed;
+        applyTextEnvMap();
+    }
+
+    hdrTexture.dispose();
+    if (sameHdr) pmremGenerator.dispose();
+});
+
+// Load separate text environment (only if different from world)
+if (!sameHdr) {
+    envLoader(textHdr).load(textHdr, (hdrTexture) => {
+        hdrTexture.mapping = THREE.EquirectangularReflectionMapping;
+        textEnvMap = pmremGenerator.fromEquirectangular(hdrTexture).texture;
+        applyTextEnvMap();
+        hdrTexture.dispose();
+        pmremGenerator.dispose();
+    });
+}
 
 // Initialize video viewer (carousel) into main scene
 initViewer(scene);
@@ -700,9 +793,16 @@ function updateCharacter() {
 
     if (character.autoWalking) {
         const dist = character.autoWalkTarget - character.x;
-        if (Math.abs(dist) > 0.5) {
-            character.velocityX = Math.sign(dist) * 8;
+        const absDist = Math.abs(dist);
+        if (absDist > 0.05) {
+            // Smooth deceleration: fast when far, slow when close
+            const speed = Math.min(8, Math.max(1.5, absDist * 5));
+            character.velocityX = Math.sign(dist) * speed;
         } else {
+            character.x = character.autoWalkTarget;
+            character.group.position.x = character.autoWalkTarget;
+            characterCollider.start.x = character.autoWalkTarget;
+            characterCollider.end.x = character.autoWalkTarget;
             character.velocityX = 0;
             character.autoWalking = false;
             const cb = character.autoWalkCallback;
@@ -928,13 +1028,6 @@ function openIsland(island) {
     cameraState.targetX = spot ? spot.x : island.x;
     cameraState.targetY = island.y + CONFIG.camera.islandY;
     cameraState.targetZ = CONFIG.camera.islandZ;
-    if (spot) {
-        characterCollider.start.set(spot.x, spot.y + 0.35, 0);
-        characterCollider.end.set(spot.x, spot.y + 1.35, 0);
-        character.x = spot.x;
-        character.y = spot.y;
-        character.group.position.set(spot.x, spot.y, 0);
-    }
     freezeCharacter();
 
     // Show project selection panel after camera settles
@@ -961,7 +1054,7 @@ function closeIsland() {
 // ==========================================
 const loader = new GLTFLoader();
 let loadedCount = 0;
-const totalAssets = 6;
+const totalAssets = 7;
 
 const zones = [];
 let roomZone = null;
@@ -1035,6 +1128,23 @@ loader.load(CONFIG.files.scene, (gltf) => {
     });
     scene.add(sceneModel);
     roomState.worldScene = sceneModel;
+    loadedCount++;
+    updateLoadingBar();
+});
+
+// Scene Text (metallic 3D titles - gets its own envMap from config)
+loader.load(CONFIG.files.sceneText, (gltf) => {
+    const textModel = gltf.scene;
+    textModel.rotation.y = Math.PI;
+    textModel.traverse(child => {
+        if (child.isMesh) {
+            child.material.side = THREE.DoubleSide;
+            child.receiveShadow = true;
+        }
+    });
+    textModelRef = textModel;
+    applyTextEnvMap();
+    scene.add(textModel);
     loadedCount++;
     updateLoadingBar();
 });
