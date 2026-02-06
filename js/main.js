@@ -103,7 +103,7 @@ function getOptimalPixelRatio() {
 // SCENE SETUP
 // ==========================================
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(CONFIG.scene.backgroundColor);
+scene.background = null;
 scene.fog = new THREE.Fog(CONFIG.scene.fogColor, CONFIG.scene.fogNear, CONFIG.scene.fogFar);
 
 const camera = new THREE.PerspectiveCamera(
@@ -116,7 +116,8 @@ camera.position.set(CONFIG.camera.startX, CONFIG.camera.startY, CONFIG.camera.st
 
 const renderer = new THREE.WebGLRenderer({
     canvas: document.getElementById('canvas'),
-    antialias: true
+    antialias: true,
+    alpha: true
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(getOptimalPixelRatio());
