@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Carousel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/carousel-test.css">
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loading-text">Loading...</div>
+    </div>
+    <div id="carousel-container">
+        <!-- Three.js canvas will be inserted here -->
+    </div>
+   <script src="https://unpkg.com/gsap@3/dist/gsap.min.js"></script>
+   <script src="https://unpkg.com/gsap@3/dist/MotionPathPlugin.min.js"></script>
+   <script src="https://unpkg.com/gsap@3/dist/CustomEase.min.js"></script>
+    <!-- Debug Panel (toggle with 'D' key) -->
+    <div id="debug-panel" style="display: none;">
+        <h3>Debug Controls</h3>
+
+        <!-- Fly Camera Toggle -->
+        <div class="debug-section">
+            <label>
+                <input type="checkbox" id="fly-mode"> Enable Fly Camera
+            </label>
+            <small>Click canvas to capture mouse. WASD + mouse look, Q/E up/down, Shift = fast, Scroll = speed</small>
+        </div>
+        <label>
+            Speed: <input type="range" id="fly-speed" min="0.01" max="2" step="0.01" value="0.15">
+            <span id="fly-speed-val">0.15</span>
+        </label>
+
+        <hr>
+        <h4>Camera</h4>
+        <label>
+            FOV: <input type="range" id="cam-fov" min="20" max="120" step="1" value="50">
+            <span id="cam-fov-val">50</span>
+        </label>
+
+        <hr>
+        <h4>Path Settings</h4>
+        <label>
+            <input type="checkbox" id="show-path"> Show Path
+        </label>
+        <label>
+            Main Card T: <input type="range" id="main-card-t" min="0" max="1" step="0.01" value="0.75">
+            <span id="main-card-t-val">0.75</span>
+        </label>
+        <label>
+            Global Offset: <input type="range" id="offset-slider" min="-1" max="1" step="0.01" value="0">
+            <span id="offset-value">0</span>
+        </label>
+
+        <hr>
+        <h4>Card Scale</h4>
+        <label>
+            Scale: <input type="range" id="card-scale" min="0.1" max="3" step="0.05" value="1">
+            <span id="card-scale-val">1.00</span>
+        </label>
+
+        <hr>
+        <h4>Card Rotation (degrees)</h4>
+        <label>
+            X: <input type="range" id="card-rot-x" min="-180" max="180" step="1" value="0">
+            <span id="card-rot-x-val">0</span>
+        </label>
+        <label>
+            Y: <input type="range" id="card-rot-y" min="-180" max="180" step="1" value="180">
+            <span id="card-rot-y-val">180</span>
+        </label>
+        <label>
+            Z: <input type="range" id="card-rot-z" min="-180" max="180" step="1" value="0">
+            <span id="card-rot-z-val">0</span>
+        </label>
+
+        <hr>
+        <h4>Timeline Offset Adjust</h4>
+        <label>
+            X: <input type="range" id="timeline-off-x" min="-2" max="2" step="0.1" value="0">
+            <span id="timeline-off-x-val">0</span>
+        </label>
+        <label>
+            Y: <input type="range" id="timeline-off-y" min="-2" max="2" step="0.1" value="0">
+            <span id="timeline-off-y-val">0</span>
+        </label>
+        <label>
+            Z: <input type="range" id="timeline-off-z" min="-2" max="2" step="0.1" value="0">
+            <span id="timeline-off-z-val">0</span>
+        </label>
+
+        <h4>Timeline Scale</h4>
+        <label>
+            Scale: <input type="range" id="timeline-scale" min="0.05" max="1.5" step="0.01" value="0.6">
+            <span id="timeline-scale-val">0.60</span>
+        </label>
+
+        <h4>Timeline Rotation Adjust</h4>
+        <label>
+            X: <input type="range" id="timeline-rot-x" min="-45" max="45" step="1" value="0">
+            <span id="timeline-rot-x-val">0</span>
+        </label>
+        <label>
+            Y: <input type="range" id="timeline-rot-y" min="-45" max="45" step="1" value="0">
+            <span id="timeline-rot-y-val">0</span>
+        </label>
+        <label>
+            Z: <input type="range" id="timeline-rot-z" min="-45" max="45" step="1" value="0">
+            <span id="timeline-rot-z-val">0</span>
+        </label>
+
+        <hr>
+        <h4>Title Offset (from main card)</h4>
+        <label>
+            X: <input type="range" id="title-off-x" min="-5" max="5" step="0.1" value="2.5">
+            <span id="title-off-x-val">2.5</span>
+        </label>
+        <label>
+            Y: <input type="range" id="title-off-y" min="-5" max="5" step="0.1" value="-1.2">
+            <span id="title-off-y-val">-1.2</span>
+        </label>
+        <label>
+            Z: <input type="range" id="title-off-z" min="-5" max="5" step="0.1" value="0">
+            <span id="title-off-z-val">0</span>
+        </label>
+
+        <h4>Title Scale</h4>
+        <label>
+            Scale: <input type="range" id="title-scale" min="0.1" max="2" step="0.05" value="0.4">
+            <span id="title-scale-val">0.40</span>
+        </label>
+
+        <h4>Title Rotation (degrees)</h4>
+        <label>
+            X: <input type="range" id="title-rot-x" min="-180" max="180" step="1" value="0">
+            <span id="title-rot-x-val">0</span>
+        </label>
+        <label>
+            Y: <input type="range" id="title-rot-y" min="-180" max="180" step="1" value="-15">
+            <span id="title-rot-y-val">-15</span>
+        </label>
+        <label>
+            Z: <input type="range" id="title-rot-z" min="-180" max="180" step="1" value="-5">
+            <span id="title-rot-z-val">-5</span>
+        </label>
+
+        <hr>
+        <button id="fly-in-btn">Trigger Fly-In Animation</button>
+        <button id="export-btn">Export Settings to Console</button>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="./js/carouselTest.js"></script>
+    <script type="module">
+        // Debug panel toggle
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'd' || e.key === 'D') {
+                // Don't toggle if in fly mode and typing
+                if (window.carousel && window.carousel.flyMode && window.carousel.isPointerLocked) return;
+                const panel = document.getElementById('debug-panel');
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+
+        // Wait for carousel to initialize
+        setTimeout(() => {
+            if (!window.carousel) return;
+            const c = window.carousel;
+
+            // Fly mode toggle
+            document.getElementById('fly-mode')?.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    c.enableFlyMode();
+                } else {
+                    c.disableFlyMode();
+                }
+            });
+
+            // Fly speed slider
+            document.getElementById('fly-speed')?.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                document.getElementById('fly-speed-val').textContent = val.toFixed(2);
+                c.setFlySpeed(val);
+            });
+
+            // Update slider when scroll changes speed
+            window.addEventListener('flySpeedChange', (e) => {
+                const slider = document.getElementById('fly-speed');
+                const valSpan = document.getElementById('fly-speed-val');
+                if (slider && valSpan) {
+                    slider.value = e.detail;
+                    valSpan.textContent = e.detail.toFixed(2);
+                }
+            });
+
+            // FOV
+            document.getElementById('cam-fov')?.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                document.getElementById('cam-fov-val').textContent = val;
+                c.setFOV(val);
+            });
+
+            // Path toggle
+            document.getElementById('show-path')?.addEventListener('change', (e) => {
+                c.togglePathVisualization(e.target.checked);
+            });
+
+            // Main Card T
+            document.getElementById('main-card-t')?.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                document.getElementById('main-card-t-val').textContent = val.toFixed(2);
+                c.setMainCardT(val);
+            });
+
+            // Offset slider
+            document.getElementById('offset-slider')?.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                document.getElementById('offset-value').textContent = val.toFixed(2);
+                c.setOffset(val);
+            });
+
+            // Card scale
+            document.getElementById('card-scale')?.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                document.getElementById('card-scale-val').textContent = val.toFixed(2);
+                c.setCardScale(val);
+            });
+
+            // Card rotation
+            const updateCardRotation = () => {
+                const x = parseFloat(document.getElementById('card-rot-x').value);
+                const y = parseFloat(document.getElementById('card-rot-y').value);
+                const z = parseFloat(document.getElementById('card-rot-z').value);
+                document.getElementById('card-rot-x-val').textContent = x;
+                document.getElementById('card-rot-y-val').textContent = y;
+                document.getElementById('card-rot-z-val').textContent = z;
+                c.setCardRotation(x, y, z);
+            };
+            document.getElementById('card-rot-x')?.addEventListener('input', updateCardRotation);
+            document.getElementById('card-rot-y')?.addEventListener('input', updateCardRotation);
+            document.getElementById('card-rot-z')?.addEventListener('input', updateCardRotation);
+
+            // Timeline offset (slider values are OFFSETS from base CONFIG)
+            // Store base values from CONFIG
+            const baseTimelineOffset = { x: 0, y: -0.8, z: 0 };
+            const baseTimelineRotation = { x: -23, y: 6, z: 5 };
+
+            const updateTimelineOffset = () => {
+                const dx = parseFloat(document.getElementById('timeline-off-x').value);
+                const dy = parseFloat(document.getElementById('timeline-off-y').value);
+                const dz = parseFloat(document.getElementById('timeline-off-z').value);
+                document.getElementById('timeline-off-x-val').textContent = dx.toFixed(1);
+                document.getElementById('timeline-off-y-val').textContent = dy.toFixed(1);
+                document.getElementById('timeline-off-z-val').textContent = dz.toFixed(1);
+                c.setTimelineOffset(baseTimelineOffset.x + dx, baseTimelineOffset.y + dy, baseTimelineOffset.z + dz);
+            };
+            document.getElementById('timeline-off-x')?.addEventListener('input', updateTimelineOffset);
+            document.getElementById('timeline-off-y')?.addEventListener('input', updateTimelineOffset);
+            document.getElementById('timeline-off-z')?.addEventListener('input', updateTimelineOffset);
+
+            // Timeline scale (absolute)
+            const timelineScaleSlider = document.getElementById('timeline-scale');
+            const timelineScaleVal = document.getElementById('timeline-scale-val');
+
+            const syncTimelineScaleUI = (scale) => {
+                if (timelineScaleSlider) timelineScaleSlider.value = scale;
+                if (timelineScaleVal) timelineScaleVal.textContent = scale.toFixed(2);
+            };
+
+            syncTimelineScaleUI(c.getTimelineScale());
+
+            timelineScaleSlider?.addEventListener('input', (e) => {
+                const scale = parseFloat(e.target.value);
+                if (timelineScaleVal) timelineScaleVal.textContent = scale.toFixed(2);
+                c.setTimelineScale(scale);
+            });
+
+            // Timeline rotation (slider values are offsets from base)
+            const updateTimelineRotation = () => {
+                const dx = parseFloat(document.getElementById('timeline-rot-x').value);
+                const dy = parseFloat(document.getElementById('timeline-rot-y').value);
+                const dz = parseFloat(document.getElementById('timeline-rot-z').value);
+                document.getElementById('timeline-rot-x-val').textContent = dx;
+                document.getElementById('timeline-rot-y-val').textContent = dy;
+                document.getElementById('timeline-rot-z-val').textContent = dz;
+                c.setTimelineRotation(baseTimelineRotation.x + dx, baseTimelineRotation.y + dy, baseTimelineRotation.z + dz);
+            };
+            document.getElementById('timeline-rot-x')?.addEventListener('input', updateTimelineRotation);
+            document.getElementById('timeline-rot-y')?.addEventListener('input', updateTimelineRotation);
+            document.getElementById('timeline-rot-z')?.addEventListener('input', updateTimelineRotation);
+
+            // Title offset
+            const updateTitleOffset = () => {
+                const x = parseFloat(document.getElementById('title-off-x').value);
+                const y = parseFloat(document.getElementById('title-off-y').value);
+                const z = parseFloat(document.getElementById('title-off-z').value);
+                document.getElementById('title-off-x-val').textContent = x.toFixed(1);
+                document.getElementById('title-off-y-val').textContent = y.toFixed(1);
+                document.getElementById('title-off-z-val').textContent = z.toFixed(1);
+                c.setTitleOffset(x, y, z);
+            };
+            document.getElementById('title-off-x')?.addEventListener('input', updateTitleOffset);
+            document.getElementById('title-off-y')?.addEventListener('input', updateTitleOffset);
+            document.getElementById('title-off-z')?.addEventListener('input', updateTitleOffset);
+
+            // Title scale
+            document.getElementById('title-scale')?.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                document.getElementById('title-scale-val').textContent = val.toFixed(2);
+                c.setTitleScale(val);
+            });
+
+            // Title rotation
+            const updateTitleRotation = () => {
+                const x = parseFloat(document.getElementById('title-rot-x').value);
+                const y = parseFloat(document.getElementById('title-rot-y').value);
+                const z = parseFloat(document.getElementById('title-rot-z').value);
+                document.getElementById('title-rot-x-val').textContent = x;
+                document.getElementById('title-rot-y-val').textContent = y;
+                document.getElementById('title-rot-z-val').textContent = z;
+                c.setTitleRotation(x, y, z);
+            };
+            document.getElementById('title-rot-x')?.addEventListener('input', updateTitleRotation);
+            document.getElementById('title-rot-y')?.addEventListener('input', updateTitleRotation);
+            document.getElementById('title-rot-z')?.addEventListener('input', updateTitleRotation);
+
+            // Fly-in button
+            document.getElementById('fly-in-btn')?.addEventListener('click', () => {
+                c.flyInAnimation();
+            });
+
+            // Export button
+            document.getElementById('export-btn')?.addEventListener('click', () => {
+                c.exportSettings();
+            });
+
+        }, 1000);
+    </script>
+</body>
+</html>

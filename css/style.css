@@ -1,0 +1,496 @@
+@font-face {
+    font-family: 'Sneakers Script Narrow';
+    src: url('../assets/fonts/Sneakers Script Narrow Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    font-family: 'Inter', 'Arial', sans-serif;
+    background: #000;
+}
+
+canvas {
+    display: block;
+}
+
+/* ==========================================
+   LOADING SCREEN
+   ========================================== */
+#loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    color: white;
+}
+
+#loading.hidden {
+    display: none;
+}
+
+.loading-text {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.loading-bar {
+    width: 300px;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.loading-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    width: 0%;
+    transition: width 0.3s;
+}
+
+/* ==========================================
+   DEBUG UI OVERLAY
+   ========================================== */
+#ui {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 100;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#ui div {
+    margin-bottom: 5px;
+}
+
+/* ==========================================
+   INTERACT BUTTON
+   ========================================== */
+.interact-button {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 200;
+    transform: translateX(-50%);
+}
+
+.interact-button.visible {
+    opacity: 1;
+}
+
+.button-circle {
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, #ffeb3b, #ffc107);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: #000;
+    font-weight: bold;
+    box-shadow: 0 4px 20px rgba(255, 235, 59, 0.6);
+    border: 3px solid white;
+    animation: bounce 0.6s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.button-label {
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    border: 2px solid white;
+}
+
+/* ==========================================
+   PROJECT SELECTION PANEL (Sonic Generations style)
+   ========================================== */
+.project-select {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+    pointer-events: none;
+}
+
+.project-select.active {
+    display: flex;
+    pointer-events: auto;
+}
+
+.project-select__panel {
+    position: relative;
+    width: 85%;
+    max-width: 960px;
+    background: #e00;
+    border-radius: 0;
+    padding: 30px 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr auto;
+    gap: 10px 30px;
+    min-height: 260px;
+}
+
+.project-select__title {
+    grid-column: 1 / -1;
+    font-family: 'Inter', sans-serif;
+    font-size: 48px;
+    font-weight: 900;
+    font-style: italic;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 3px 3px 0 #000, -1px -1px 0 #000;
+    margin-bottom: 5px;
+}
+
+.project-select__stats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ps-stat {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.ps-stat__label {
+    font-weight: 700;
+    font-size: 18px;
+    color: #ffeb3b;
+    text-transform: uppercase;
+}
+
+.ps-stat__value {
+    font-weight: 900;
+    font-size: 18px;
+    color: #fff;
+    text-align: right;
+}
+
+.project-select__thumb-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.project-select__thumbnail {
+    max-width: 100%;
+    max-height: 200px;
+    border: 3px solid #fff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    object-fit: cover;
+}
+
+.project-select__arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 48px;
+    font-weight: 900;
+    cursor: pointer;
+    padding: 10px;
+    opacity: 0.8;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 10;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.project-select__arrow:hover {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.15);
+}
+
+.project-select__arrow--left {
+    left: -60px;
+}
+
+.project-select__arrow--right {
+    right: -60px;
+}
+
+.project-select__enter {
+    grid-column: 1 / -1;
+    justify-self: end;
+    background: #e00;
+    color: #fff;
+    border: 3px solid #fff;
+    padding: 12px 36px;
+    font-size: 22px;
+    font-weight: 900;
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.project-select__enter:hover {
+    background: #c00;
+    transform: scale(1.04);
+}
+
+.project-select__enter:active {
+    transform: scale(0.97);
+}
+
+/* ==========================================
+   COLLECTION POPUP
+   ========================================== */
+.collection-popup {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+    background: rgba(0, 0, 0, 0.85);
+}
+
+.collection-popup.active {
+    display: flex;
+}
+
+.collection-popup__inner {
+    background: #1a1a1a;
+    border: 2px solid #444;
+    border-radius: 12px;
+    padding: 24px 30px;
+    width: 85%;
+    max-width: 800px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.collection-popup__title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.collection-popup__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    overflow-y: auto;
+    max-height: 50vh;
+    padding-right: 8px;
+}
+
+.collection-popup__grid-item {
+    aspect-ratio: 16 / 9;
+    background-size: cover;
+    background-position: center;
+    background-color: #333;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s, transform 0.15s;
+}
+
+.collection-popup__grid-item:hover {
+    transform: scale(1.03);
+}
+
+.collection-popup__grid-item.selected {
+    border-color: #ffeb3b;
+}
+
+.collection-popup__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #aaa;
+    font-size: 14px;
+}
+
+.collection-popup__name {
+    font-weight: 600;
+    color: #fff;
+}
+
+.collection-popup__counter {
+    color: #0ff;
+    font-weight: 700;
+}
+
+.collection-popup__controls {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+.collection-popup__btn {
+    padding: 10px 30px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    transition: background 0.2s;
+}
+
+.collection-popup__btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+/* ==========================================
+   CSS3D CONTAINER (Video Viewer overlay)
+   ========================================== */
+#css3d-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+    display: none;
+}
+
+#css3d-container.active {
+    display: block;
+    pointer-events: auto;
+}
+
+/* CSS3D video overlay styling */
+#css3d-container #video-overlay {
+    background: #000;
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+#css3d-container #video-overlay iframe {
+    display: block;
+}
+
+/* ==========================================
+   VIEWER QUIT BUTTON
+   ========================================== */
+.viewer-quit {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 10px 24px;
+    cursor: pointer;
+    z-index: 600;
+    display: none;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.viewer-quit:hover {
+    background: rgba(200, 0, 0, 0.7);
+    border-color: #fff;
+}
+
+.viewer-quit.visible {
+    display: block;
+}
+
+/* ==========================================
+   TRANSITION OVERLAY
+   ========================================== */
+#transition-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 550;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ==========================================
+   MOBILE CONTROLS
+   ========================================== */
+#mobile-controls {
+    position: fixed;
+    bottom: 18px;
+    left: 18px;
+    right: 18px;
+    display: none;
+    pointer-events: none;
+    z-index: 300;
+}
+
+#mobile-controls .mc-btn {
+    position: absolute;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: rgba(0, 0, 0, 0.35);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 18px;
+    font-weight: bold;
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+}
+
+#mobile-controls .mc-left { left: 0; bottom: 0; }
+#mobile-controls .mc-right { left: 64px; bottom: 0; }
+#mobile-controls .mc-jump { right: 0; bottom: 0; }
+#mobile-controls .mc-up { right: 64px; bottom: 0; }
+
+@media (max-width: 820px), (hover: none) and (pointer: coarse) {
+    #mobile-controls { display: block; }
+    #ui { font-size: 12px; opacity: 0.85; }
+}
+
+body.touch #mobile-controls { display: block; }

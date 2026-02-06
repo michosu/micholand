@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="loading-text">Loading Portfolio...</div>
+        <div class="loading-bar">
+            <div class="loading-progress" id="loading-progress"></div>
+        </div>
+    </div>
+
+    <!-- Canvas -->
+    <canvas id="canvas"></canvas>
+
+    <!-- CSS3D layer for video viewer (populated by videoViewer.js) -->
+    <div id="css3d-container"></div>
+
+    <!-- Quit button for video viewer -->
+    <button id="viewer-quit" class="viewer-quit">QUIT</button>
+
+    <!-- UI -->
+    <div id="ui">
+        <div>&larr; &rarr; Move | SPACE Jump</div>
+        <div>&uarr; Interact</div>
+        <div>X: <span id="pos-x">0</span></div>
+        <div>Nearest: <span id="nearest">--</span></div>
+        <div style="margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">
+            <div style="color: #4ecdc4;">VelX: <span id="vel-x">0</span></div>
+            <div style="color: #ff6b6b;">VelY: <span id="vel-y">0</span></div>
+            <div style="color: #ffe66d;">Grounded: <span id="grounded">false</span></div>
+            <div style="color: #a8e6cf;">FPS: <span id="fps-counter">0</span></div>
+        </div>
+        <div style="margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">
+            <div style="color: #a8e6cf;">Char: <span id="char-pos">0, 0</span></div>
+            <div style="color: #ff9ff3;">Cam: <span id="cam-pos">0, 0, 0</span></div>
+            <div style="color: #ffd93d;">Cam Rot: <span id="cam-rot">0, 0, 0</span></div>
+            <div style="color: #ffd93d;">Cam FOV: <span id="cam-fov">0</span></div>
+        </div>
+    </div>
+
+    <!-- Interact Button -->
+    <div class="interact-button" id="interact-button">
+        <div class="button-circle">&uarr;</div>
+        <div class="button-label" id="button-label">VIEW</div>
+    </div>
+
+    <!-- Project Selection Panel (Sonic Generations style) -->
+    <div id="project-select" class="project-select">
+        <div class="project-select__panel">
+            <!-- Title -->
+            <h2 class="project-select__title" id="ps-title">TRUE HERO</h2>
+
+            <!-- Stats -->
+            <div class="project-select__stats">
+                <div class="ps-stat"><span class="ps-stat__label">Score</span><span class="ps-stat__value" id="ps-score">030000</span></div>
+                <div class="ps-stat"><span class="ps-stat__label">Time</span><span class="ps-stat__value" id="ps-time">00:03:01</span></div>
+                <div class="ps-stat"><span class="ps-stat__label">Client</span><span class="ps-stat__value" id="ps-client">REDSHYFT</span></div>
+                <div class="ps-stat"><span class="ps-stat__label">Year</span><span class="ps-stat__value" id="ps-year">2023.09</span></div>
+                <div class="ps-stat"><span class="ps-stat__label">Type</span><span class="ps-stat__value" id="ps-type">Game Edit</span></div>
+            </div>
+
+            <!-- Thumbnail -->
+            <div class="project-select__thumb-wrap">
+                <img class="project-select__thumbnail" id="ps-thumbnail" src="" alt="Project Thumbnail">
+            </div>
+
+            <!-- Navigation arrows -->
+            <button class="project-select__arrow project-select__arrow--left" id="ps-prev">&laquo;</button>
+            <button class="project-select__arrow project-select__arrow--right" id="ps-next">&raquo;</button>
+
+            <!-- Enter button -->
+            <button class="project-select__enter" id="ps-enter">ENTER STAGE</button>
+        </div>
+    </div>
+
+    <!-- Collection Popup -->
+    <div id="collection-popup" class="collection-popup">
+        <div class="collection-popup__inner">
+            <h2 class="collection-popup__title" id="cp-title">Photography</h2>
+            <div class="collection-popup__grid" id="cp-grid">
+                <!-- Grid items injected dynamically -->
+            </div>
+            <div class="collection-popup__footer">
+                <span class="collection-popup__name" id="cp-name">Item Name</span>
+                <span class="collection-popup__counter" id="cp-counter">1/13</span>
+            </div>
+            <div class="collection-popup__controls">
+                <button id="cp-choose" class="collection-popup__btn">Choose</button>
+                <button id="cp-back" class="collection-popup__btn">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transition Overlay -->
+    <div id="transition-overlay"></div>
+
+    <!-- Mobile Controls -->
+    <div id="mobile-controls" aria-hidden="true">
+        <button class="mc-btn mc-left" data-key="ArrowLeft">&blacktriangleleft;</button>
+        <button class="mc-btn mc-right" data-key="ArrowRight">&blacktriangleright;</button>
+        <button class="mc-btn mc-jump" data-key=" ">&UpArrowBar;</button>
+        <button class="mc-btn mc-up" data-key="ArrowUp">&uarr;</button>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/CustomEase.min.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
